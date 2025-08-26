@@ -1,6 +1,7 @@
-import { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
+
 export const metadata: Metadata = {
   title: {
     default: siteConfig.name,
@@ -28,11 +29,18 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <head />
-      <body className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 antialiased">
-        <div className="min-h-screen flex items-center justify-center">
+      <body className="relative min-h-screen bg-slate-950 text-slate-100 antialiased">
+        {/* Subtle grid background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none"></div>
+
+        {/* Glowing accent blobs */}
+        <div className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] rounded-full bg-indigo-600 opacity-20 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-[-100px] right-[-100px] w-[300px] h-[300px] rounded-full bg-pink-600 opacity-20 blur-3xl animate-pulse"></div>
+
+        {/* Page content */}
+        <main className="relative z-10 flex flex-col min-h-screen">
           {children}
-        </div>
+        </main>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -7,13 +7,20 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState("javascript");
   const [error, setError] = useState("");
+  const [showCopied, setShowCopied] = useState(false);
+  const [stats, setStats] = useState({ lines: 0, chars: 0 });
+
+  useEffect(() => {
+    const lines = code.split("\n").length;
+    const chars = code.length;
+    setStats({ lines, chars });
+  }, [code]);
 
   async function handleSubmit() {
     if (!code.trim()) {
       setError("Please enter some code to comment");
       return;
     }
-
     setIsLoading(true);
     setError("");
     setResult("");
@@ -24,13 +31,8 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to process code");
-      }
-
+      if (!res.ok) throw new Error(data.error || "Failed to process code");
       setResult(data.commentedCode || "⚠️ Error processing code");
     } catch (err) {
       setError("Failed to process code. Please try again.");
@@ -40,164 +42,183 @@ export default function Home() {
     }
   }
 
-  function copyToClipboard() {
-    navigator.clipboard.writeText(result);
-  }
-
-  function downloadCode() {
-    const element = document.createElement("a");
-    const file = new Blob([result], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = `commented-code.${getFileExtension(language)}`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  }
-
-  function getFileExtension(lang: string) {
-    const extensions: { [key: string]: string } = {
-      javascript: "js",
-      python: "py",
-      java: "java",
-      cpp: "cpp",
-      csharp: "cs",
-      typescript: "ts",
-      php: "php",
-      ruby: "rb",
-      go: "go",
-      rust: "rs",
-    };
-    return extensions[lang] || "txt";
-  }
-
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        setCode(content);
-      };
-      reader.readAsText(file);
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(result);
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
     }
-  }
+  };
+
+  const downloadFile = () => {
+    const file = new Blob([result], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(file);
+    link.download = `commented.${language}`;
+    link.click();
+  };
+
+  const languages = [
+    { value: "javascript", name: "JavaScript", icon: "🟨" },
+    { value: "python", name: "Python", icon: "🐍" },
+    { value: "java", name: "Java", icon: "☕" },
+    { value: "cpp", name: "C++", icon: "⚡" },
+    { value: "csharp", name: "C#", icon: "💎" },
+    { value: "typescript", name: "TypeScript", icon: "🔷" },
+    { value: "php", name: "PHP", icon: "🐘" },
+    { value: "ruby", name: "Ruby", icon: "💎" },
+    { value: "go", name: "Go", icon: "🐹" },
+    { value: "rust", name: "Rust", icon: "🦀" },
+  ];
+  const selectedLang = languages.find((l) => l.value === language);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
-      <div className="max-w-5xl mx-auto space-y-12">
-        {/* Header */}
-        <header className="text-center space-y-3">
-          <h1 className="text-5xl font-bold tracking-tight">💬 Code Commenter</h1>
-          <p className="text-slate-400 text-lg">
-            Paste or upload your code and get clean, AI-generated comments — no edits, just annotations.
-          </p>
-        </header>
+    <>
+      <style jsx>{`
+        @keyframes bounce {
+          0%, 20%, 53%, 80%, 100% { transform: translate3d(0, 0, 0); }
+          40%, 43% { transform: translate3d(0, -10px, 0); }
+          70% { transform: translate3d(0, -5px, 0); }
+          90% { transform: translate3d(0, -2px, 0); }
+        }
+        .animate-bounce-custom { animation: bounce 1.4s infinite; }
+        .animate-bounce-custom-delay { animation: bounce 1.4s infinite 0.2s; }
+        .animate-bounce-custom-delay2 { animation: bounce 1.4s infinite 0.4s; }
+        .glass { backdrop-filter: blur(20px); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .glass-dark { backdrop-filter: blur(20px); background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); }
+        .scrollbar::-webkit-scrollbar { width: 6px; }
+        .scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+      `}</style>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 relative overflow-hidden font-sans">
+        {/* Background accents */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+
+        {/* Navbar */}
+        <nav className="sticky top-0 z-50 glass shadow-xl">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold">
+                💬
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Code Commenter AI
+                </h1>
+                <p className="text-xs text-slate-400">Intelligent code documentation</p>
+              </div>
+            </div>
+            <span className="px-3 py-1 text-xs bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full text-white shadow">
+              v2.0 Beta
+            </span>
+          </div>
+        </nav>
+
+        {/* Stats */}
+        <div className="max-w-7xl mx-auto px-6 mt-6 flex gap-4 justify-center">
+          <div className="glass rounded-xl px-4 py-2 shadow">
+            <div className="text-xs text-slate-400">Lines</div>
+            <div className="text-lg font-bold">{stats.lines}</div>
+          </div>
+          <div className="glass rounded-xl px-4 py-2 shadow">
+            <div className="text-xs text-slate-400">Characters</div>
+            <div className="text-lg font-bold">{stats.chars}</div>
+          </div>
+          <div className="glass rounded-xl px-4 py-2 shadow flex items-center gap-1">
+            <span>{selectedLang?.icon}</span>
+            <span className="text-lg font-bold">{selectedLang?.name}</span>
+          </div>
+        </div>
+
+        {/* Workspace */}
+        <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Input */}
-          <section className="bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800 p-6 space-y-4 shadow-lg">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Input Code</h2>
+          <div className="glass rounded-2xl shadow-xl overflow-hidden flex flex-col">
+            <header className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border-b border-white/10 p-4 flex justify-between">
+              <h2 className="font-semibold">Input Code</h2>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="bg-slate-800 text-sm px-3 py-1 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="glass-dark px-3 py-1 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="javascript">JavaScript</option>
-                <option value="python">Python</option>
-                <option value="java">Java</option>
-                <option value="cpp">C++</option>
-                <option value="csharp">C#</option>
-                <option value="typescript">TypeScript</option>
-                <option value="php">PHP</option>
-                <option value="ruby">Ruby</option>
-                <option value="go">Go</option>
-                <option value="rust">Rust</option>
+                {languages.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.icon} {lang.name}
+                  </option>
+                ))}
               </select>
-            </div>
-
-            {/* File Upload */}
-            <div className="flex items-center gap-3">
-              <input
-                type="file"
-                accept=".js,.py,.java,.cpp,.cs,.ts,.php,.rb,.go,.rs,.txt"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer px-4 py-2 text-sm rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700"
-              >
-                📁 Upload File
-              </label>
-              <span className="text-slate-500 text-sm">or paste code below</span>
-            </div>
+            </header>
 
             <textarea
-              className="w-full min-h-[250px] font-mono text-sm rounded-xl bg-slate-950 border border-slate-800 p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-500"
-              placeholder={`Paste your ${language} code here...`}
+              className="flex-1 bg-black/30 text-white font-mono text-sm p-6 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-slate-500"
+              placeholder={`// Enter your ${selectedLang?.name} code here...`}
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
 
-            {error && (
-              <p className="text-sm text-red-400 flex items-center gap-1">⚠️ {error}</p>
-            )}
+            {error && <p className="px-4 py-2 text-sm text-red-400">⚠️ {error}</p>}
 
             <button
               onClick={handleSubmit}
               disabled={isLoading || !code.trim()}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-700 transition-colors px-6 py-3 rounded-xl font-semibold shadow-md flex items-center justify-center gap-2"
+              className="m-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 disabled:from-slate-700 disabled:to-slate-700 text-white px-6 py-3 rounded-xl font-semibold shadow hover:opacity-90 transition"
             >
               {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Processing...
-                </>
+                <div className="flex gap-2 justify-center">
+                  <span className="w-2 h-2 bg-white rounded-full animate-bounce-custom"></span>
+                  <span className="w-2 h-2 bg-white rounded-full animate-bounce-custom-delay"></span>
+                  <span className="w-2 h-2 bg-white rounded-full animate-bounce-custom-delay2"></span>
+                </div>
               ) : (
-                "✨ Add Comments"
+                "✨ Generate Comments"
               )}
             </button>
-          </section>
+          </div>
 
           {/* Output */}
-          <section className="bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800 p-6 shadow-lg">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-semibold">Commented Code</h2>
+          <div className="glass rounded-2xl shadow-xl overflow-hidden flex flex-col">
+            <header className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-b border-white/10 p-4 flex justify-between">
+              <h2 className="font-semibold">Commented Code</h2>
               {result && (
                 <div className="flex gap-2">
                   <button
                     onClick={copyToClipboard}
-                    className="px-3 py-1 text-sm rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700"
+                    className="glass-dark px-3 py-1 rounded-lg text-sm hover:text-green-400 transition"
                   >
-                    📋 Copy
+                    {showCopied ? "✅ Copied!" : "📋 Copy"}
                   </button>
                   <button
-                    onClick={downloadCode}
-                    className="px-3 py-1 text-sm rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700"
+                    onClick={downloadFile}
+                    className="glass-dark px-3 py-1 rounded-lg text-sm hover:text-blue-400 transition"
                   >
                     💾 Download
                   </button>
                 </div>
               )}
-            </div>
+            </header>
 
-            <div className="min-h-[250px] bg-slate-950 border border-slate-800 rounded-xl p-4 overflow-auto">
+            <div className="flex-1 bg-black/30 p-6 overflow-auto scrollbar">
               {result ? (
-                <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap leading-relaxed">
-                  {result}
+                <pre className="text-sm font-mono whitespace-pre-wrap text-green-300">
+                  <code>{result}</code>
                 </pre>
               ) : (
-                <div className="flex items-center justify-center h-full text-slate-500">
+                <div className="flex flex-col items-center justify-center h-full text-slate-500">
                   <p>Your commented code will appear here</p>
                 </div>
               )}
             </div>
-          </section>
+          </div>
         </div>
+
+        {/* Footer */}
+        <footer className="text-center text-xs text-slate-500 py-4">
+          Built with ❤️ at Hackathon 2025
+        </footer>
       </div>
-    </div>
+    </>
   );
 }

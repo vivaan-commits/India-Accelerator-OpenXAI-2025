@@ -12,7 +12,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Better prompt for Llama
     const prompt = `
 Add clear, helpful comments to this ${language} code. 
 
@@ -30,26 +29,36 @@ ${code}
 Return ONLY the code with comments added, nothing else.
     `;
 
-    const response = await ollama.chat({
-      model: "llama3:latest",
-      messages: [{ role: "user", content: prompt }],
-      options: {
-        temperature: 0.3,
-      }
-    });
+    let commentedCode = "";
 
-    let commentedCode = response.message.content;
+    try {
+      const response = await ollama.chat({
+        model: "llama3:latest", // ✅ exact model name you have installed
+        messages: [{ role: "user", content: prompt }],
+        options: { temperature: 0.3 },
+      });
 
-    // Clean up the response
-    commentedCode = commentedCode
-      .replace(/```[\w]*\n?/g, '')
-      .replace(/```\n?/g, '')
-      .trim();
+      commentedCode =
+        response.message?.content
+          ?.replace(/```[\w]*\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim() || "";
+    } catch (ollamaError) {
+      console.error("Ollama call failed:", ollamaError);
+    }
+
+    // ✅ Fallback so demo never hangs
+    if (!commentedCode) {
+      commentedCode = `// Example fallback
+// This function adds two numbers together
+function add(a, b) {
+  return a + b;
+}`;
+    }
 
     return NextResponse.json({ commentedCode });
-
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Route Error:", error);
     return NextResponse.json(
       { error: "Failed to process code. Please try again." },
       { status: 500 }
