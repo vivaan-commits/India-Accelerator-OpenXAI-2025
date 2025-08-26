@@ -1,30 +1,57 @@
-## Nextjs Ollama Template
+# Code Commenter AI
 
-Template to make a Nextjs + Ollama app that runs on OpenxAI (and any other NixOS infrastructure).
+**Automatically generate meaningful comments for your code using LLaMA 3!**
 
-## Modification Steps
+---
 
-1. Replace all instances of "nextjs-ollama-template" with the name of your project. This should be unique, as no apps with the same name can be run on a single Xnode.
-2. Pick your ollama model from https://ollama.com/library and enter it's identifier in [ollama-model.txt](./ollama-model.txt).
-3. Build your Nextjs app
-4. Once your app is ready for deployment and runs using `nix run`, push to GitHub and copy your GitHub url (e.g. https://github.com/Openmesh-Network/nextjs-ollama-template).
+## 🚀 Project Overview
 
-## Commands (in root folder)
+Code Commenter AI is an intelligent tool that helps developers save time and improve code readability by automatically adding context-aware comments to their code. Simply paste your code, select a programming language, and let the AI provide clear, line-by-line explanations.
 
-```
-sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist
-sudo rm -rf /nix/var/nix/daemon-socket/socket
-sudo launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+**Key Benefits:**
+- Makes code easier to understand and maintain
+- Saves time documenting large codebases
+- Ideal for beginners, teams, and collaborative projects
 
+---
 
-nix run
-```
+## ⚡ Features
 
-## Commands (in nextjs-app)
+- **Automatic Comment Generation:** Generates descriptive comments line-by-line using AI.
+- **Multi-language Support:** Works with JavaScript, Python, Java, C++, TypeScript, PHP, Ruby, Go, Rust, and more.
+- **Live Code Stats:** Displays lines of code and character count in real-time.
+- **Copy & Download:** Easily copy the commented code or download it as a file.
+- **User-friendly UI:** Modern interface with interactive animations and glassmorphism styling.
 
-```
-npm i
-npm run dev
-npm run build
-npm run start
-```
+---
+
+## 🛠 Tech Stack
+
+- **Frontend:** React (Next.js 13), TailwindCSS
+- **Backend:** Node.js / API integration with LLaMA 3
+- **AI Model:** LLaMA 3 for intelligent code understanding and comment generation
+
+---
+
+## 🎯 Problem It Solves
+
+Writing clear, consistent code comments is time-consuming and often neglected, making code harder to understand, maintain, and collaborate on. Code Commenter AI automates this process, improving code clarity and productivity.
+
+---
+
+## 💻 How to Use
+
+1. Paste your code into the input panel.
+2. Select the programming language.
+3. Click **“Generate Comments”**.
+4. View the commented code in the output panel.
+5. Copy to clipboard or download the file as needed.
+
+---
+
+## 🌟 Hackathon Info
+
+- Built with ❤️ for Hackathon 2025
+- Version: 2.0 Beta
+
+---
